@@ -88,14 +88,14 @@ angular.module('sentinelDashboardApp').controller('ParamFlowController', ['$scop
       };
 
       $scope.addParamItem = () => {
-          updateSingleParamItem($scope.currentRule.rule.paramFlowItemList,
+          updateSingleParamItem($scope.currentRule.paramFlowItemList,
               $scope.curExItem.object, $scope.curExItem.classType, $scope.curExItem.count);
           let oldItem = $scope.curExItem;
           $scope.curExItem = {classType: oldItem.classType};
       };
 
       $scope.removeParamItem = (v, t) => {
-          removeSingleParamItem($scope.currentRule.rule.paramFlowItemList, v, t);
+          removeSingleParamItem($scope.currentRule.paramFlowItemList, v, t);
       };
 
     function getMachineRules() {
@@ -130,15 +130,15 @@ angular.module('sentinelDashboardApp').controller('ParamFlowController', ['$scop
 
     $scope.editRule = function (rule) {
       $scope.currentRule = angular.copy(rule);
-      if ($scope.currentRule.rule && $scope.currentRule.rule.durationInSec === undefined) {
-        $scope.currentRule.rule.durationInSec = 1;
+      if ($scope.currentRule && $scope.currentRule.durationInSec === undefined) {
+        $scope.currentRule.durationInSec = 1;
       }
       $scope.paramFlowRuleDialog = {
         title: '编辑热点规则',
         type: 'edit',
         confirmBtnText: '保存',
         supportAdvanced: true,
-        showAdvanceButton: rule.rule.paramFlowItemList === undefined || rule.rule.paramFlowItemList.length <= 0
+        showAdvanceButton: rule.paramFlowItemList === undefined || rule.paramFlowItemList.length <= 0
       };
       paramFlowRuleDialog = ngDialog.open({
         template: '/app/views/dialog/param-flow-rule-dialog.html',
@@ -155,20 +155,18 @@ angular.module('sentinelDashboardApp').controller('ParamFlowController', ['$scop
         app: $scope.app,
         ip: mac[0],
         port: mac[1],
-        rule: {
-          grade: 1,
-          paramFlowItemList: [],
-          count: 0,
-          limitApp: 'default',
-          controlBehavior: 0,
-          durationInSec: 1,
-          burstCount: 0,
-          maxQueueingTimeMs: 0,
-          clusterMode: false,
-          clusterConfig: {
-            thresholdType: 0,
-            fallbackToLocalWhenFail: true,
-          }
+        grade: 1,
+        paramFlowItemList: [],
+        count: 0,
+        limitApp: 'default',
+        controlBehavior: 0,
+        durationInSec: 1,
+        burstCount: 0,
+        maxQueueingTimeMs: 0,
+        clusterMode: false,
+        clusterConfig: {
+          thresholdType: 0,
+          fallbackToLocalWhenFail: true,
         }
       };
       $scope.paramFlowRuleDialog = {
@@ -195,7 +193,7 @@ angular.module('sentinelDashboardApp').controller('ParamFlowController', ['$scop
       };
 
     $scope.saveRule = function () {
-      if (!ParamFlowService.checkRuleValid($scope.currentRule.rule)) {
+      if (!ParamFlowService.checkRuleValid($scope.currentRule)) {
         return;
       }
       if ($scope.paramFlowRuleDialog.type === 'add') {
@@ -273,8 +271,8 @@ angular.module('sentinelDashboardApp').controller('ParamFlowController', ['$scop
         title: '删除热点规则',
         type: 'delete_rule',
         attentionTitle: '请确认是否删除如下热点参数限流规则',
-        attention: '资源名: ' + ruleEntity.rule.resource + ', 热点参数索引: ' + ruleEntity.rule.paramIdx +
-            ', 限流模式: ' + (ruleEntity.rule.grade === 1 ? 'QPS' : '未知') + ', 限流阈值: ' + ruleEntity.rule.count,
+        attention: '资源名: ' + ruleEntity.resource + ', 热点参数索引: ' + ruleEntity.paramIdx +
+            ', 限流模式: ' + (ruleEntity.grade === 1 ? 'QPS' : '未知') + ', 限流阈值: ' + ruleEntity.count,
         confirmBtnText: '删除',
       };
       confirmDialog = ngDialog.open({

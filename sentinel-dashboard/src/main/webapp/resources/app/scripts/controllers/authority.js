@@ -75,10 +75,8 @@ angular.module('sentinelDashboardApp').controller('AuthorityRuleController', ['$
                 app: $scope.app,
                 ip: mac[0],
                 port: mac[1],
-                rule: {
-                    strategy: 0,
-                    limitApp: '',
-                }
+                strategy: 0,
+                limitApp: ''
             };
             $scope.authorityRuleDialog = {
                 title: '新增授权规则',
@@ -95,7 +93,7 @@ angular.module('sentinelDashboardApp').controller('AuthorityRuleController', ['$
         };
 
         $scope.saveRule = function () {
-            if (!AuthorityRuleService.checkRuleValid($scope.currentRule.rule)) {
+            if (!AuthorityRuleService.checkRuleValid($scope.currentRule)) {
                 return;
             }
             if ($scope.authorityRuleDialog.type === 'add') {
@@ -172,8 +170,8 @@ angular.module('sentinelDashboardApp').controller('AuthorityRuleController', ['$
                 title: '删除授权规则',
                 type: 'delete_rule',
                 attentionTitle: '请确认是否删除如下授权限流规则',
-                attention: '资源名: ' + ruleEntity.rule.resource + ', 流控应用: ' + ruleEntity.rule.limitApp +
-                    ', 类型: ' + (ruleEntity.rule.strategy === 0 ? '白名单' : '黑名单'),
+                attention: '资源名: ' + ruleEntity.resource + ', 流控应用: ' + ruleEntity.limitApp +
+                    ', 类型: ' + (ruleEntity.strategy === 0 ? '白名单' : '黑名单'),
                 confirmBtnText: '删除',
             };
             confirmDialog = ngDialog.open({

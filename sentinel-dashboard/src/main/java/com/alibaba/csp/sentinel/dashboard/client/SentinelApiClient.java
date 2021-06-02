@@ -503,7 +503,7 @@ public class SentinelApiClient {
             AssertUtil.isTrue(port > 0, "Bad machine port");
             return fetchItemsAsync(ip, port, GET_PARAM_RULE_PATH, null, ParamFlowRule.class)
                 .thenApply(rules -> rules.stream()
-                    .map(e -> ParamFlowRuleEntity.fromAuthorityRule(app, ip, port, e))
+                    .map(e -> ParamFlowRuleEntity.fromParamFlowRule(app, ip, port, e))
                     .collect(Collectors.toList())
                 );
         } catch (Exception e) {
@@ -592,9 +592,7 @@ public class SentinelApiClient {
             return AsyncUtils.newFailedFuture(new IllegalArgumentException("Invalid parameter"));
         }
         try {
-            String data = JSON.toJSONString(
-                rules.stream().map(ParamFlowRuleEntity::getRule).collect(Collectors.toList())
-            );
+            String data = JSON.toJSONString(rules);
             Map<String, String> params = new HashMap<>(1);
             params.put("data", data);
             return executeCommand(app, ip, port, SET_PARAM_RULE_PATH, params, true)

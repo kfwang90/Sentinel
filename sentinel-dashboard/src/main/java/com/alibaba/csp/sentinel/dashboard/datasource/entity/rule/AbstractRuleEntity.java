@@ -24,6 +24,7 @@ import com.alibaba.csp.sentinel.slots.block.Rule;
  * @author Eric Zhao
  * @since 0.2.1
  */
+@Deprecated
 public abstract class AbstractRuleEntity<T extends AbstractRule> implements RuleEntity {
 
     protected Long id;

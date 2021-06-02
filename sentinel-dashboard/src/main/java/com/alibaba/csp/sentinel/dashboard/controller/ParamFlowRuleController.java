@@ -15,39 +15,34 @@
  */
 package com.alibaba.csp.sentinel.dashboard.controller;
 
+import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
+import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
+import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
+import com.alibaba.csp.sentinel.dashboard.client.CommandNotFoundException;
+import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.SentinelVersion;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.ParamFlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
+import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
+import com.alibaba.csp.sentinel.dashboard.domain.Result;
+import com.alibaba.csp.sentinel.dashboard.repository.rule.RuleRepository;
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
+import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
+import com.alibaba.csp.sentinel.dashboard.util.VersionUtils;
+import com.alibaba.csp.sentinel.slots.block.RuleConstant;
+import com.alibaba.csp.sentinel.slots.block.flow.param.ParamFlowRule;
+import com.alibaba.csp.sentinel.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
-import com.alibaba.csp.sentinel.dashboard.client.CommandNotFoundException;
-import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
-import com.alibaba.csp.sentinel.dashboard.discovery.AppManagement;
-import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
-import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
-import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
-import com.alibaba.csp.sentinel.slots.block.RuleConstant;
-import com.alibaba.csp.sentinel.util.StringUtil;
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.SentinelVersion;
-import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.ParamFlowRuleEntity;
-import com.alibaba.csp.sentinel.dashboard.domain.Result;
-import com.alibaba.csp.sentinel.dashboard.repository.rule.RuleRepository;
-import com.alibaba.csp.sentinel.dashboard.util.VersionUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Eric Zhao
@@ -65,6 +60,14 @@ public class ParamFlowRuleController {
     private AppManagement appManagement;
     @Autowired
     private RuleRepository<ParamFlowRuleEntity, Long> repository;
+
+    //update by wangkunfeng 20210530 添加推送规则到apollo配置中心
+    @Autowired
+    @Qualifier("paramFlowRuleApolloProvider")
+    private DynamicRuleProvider<List<ParamFlowRuleEntity>> ruleProvider;
+    @Autowired
+    @Qualifier("paramFlowRuleApolloPublisher")
+    private DynamicRulePublisher<List<ParamFlowRuleEntity>> rulePublisher;
 
     private boolean checkIfSupported(String app, String ip, int port) {
         try {
@@ -87,20 +90,23 @@ public class ParamFlowRuleController {
         if (StringUtil.isEmpty(app)) {
             return Result.ofFail(-1, "app cannot be null or empty");
         }
-        if (StringUtil.isEmpty(ip)) {
-            return Result.ofFail(-1, "ip cannot be null or empty");
-        }
-        if (port == null || port <= 0) {
-            return Result.ofFail(-1, "Invalid parameter: port");
-        }
-        if (!checkIfSupported(app, ip, port)) {
-            return unsupportedVersion();
-        }
+//        if (StringUtil.isEmpty(ip)) {
+//            return Result.ofFail(-1, "ip cannot be null or empty");
+//        }
+//        if (port == null || port <= 0) {
+//            return Result.ofFail(-1, "Invalid parameter: port");
+//        }
+//        if (!checkIfSupported(app, ip, port)) {
+//            return unsupportedVersion();
+//        }
         try {
-            return sentinelApiClient.fetchParamFlowRulesOfMachine(app, ip, port)
-                .thenApply(repository::saveAll)
-                .thenApply(Result::ofSuccess)
-                .get();
+//            return sentinelApiClient.fetchParamFlowRulesOfMachine(app, ip, port)
+//                .thenApply(repository::saveAll)
+//                .thenApply(Result::ofSuccess)
+//                .get();
+            List<ParamFlowRuleEntity> rules = ruleProvider.getRules(app);
+            rules = repository.saveAll(rules);
+            return Result.ofSuccess(rules);
         } catch (ExecutionException ex) {
             logger.error("Error when querying parameter flow rules", ex.getCause());
             if (isNotSupported(ex.getCause())) {
@@ -125,11 +131,11 @@ public class ParamFlowRuleController {
         if (checkResult != null) {
             return checkResult;
         }
-        if (!checkIfSupported(entity.getApp(), entity.getIp(), entity.getPort())) {
-            return unsupportedVersion();
-        }
+//        if (!checkIfSupported(entity.getApp(), entity.getIp(), entity.getPort())) {
+//            return unsupportedVersion();
+//        }
         entity.setId(null);
-        entity.getRule().setResource(entity.getResource().trim());
+        entity.setResource(entity.getResource().trim());
         Date date = new Date();
         entity.setGmtCreate(date);
         entity.setGmtModified(date);
@@ -157,15 +163,15 @@ public class ParamFlowRuleController {
         if (StringUtil.isBlank(entity.getApp())) {
             return Result.ofFail(-1, "app can't be null or empty");
         }
-        if (StringUtil.isBlank(entity.getIp())) {
-            return Result.ofFail(-1, "ip can't be null or empty");
-        }
-        if (entity.getPort() == null || entity.getPort() <= 0) {
-            return Result.ofFail(-1, "port can't be null");
-        }
-        if (entity.getRule() == null) {
-            return Result.ofFail(-1, "rule can't be null");
-        }
+//        if (StringUtil.isBlank(entity.getIp())) {
+//            return Result.ofFail(-1, "ip can't be null or empty");
+//        }
+//        if (entity.getPort() == null || entity.getPort() <= 0) {
+//            return Result.ofFail(-1, "port can't be null");
+//        }
+//        if (entity.getRule() == null) {
+//            return Result.ofFail(-1, "rule can't be null");
+//        }
         if (StringUtil.isBlank(entity.getResource())) {
             return Result.ofFail(-1, "resource name cannot be null or empty");
         }
@@ -203,9 +209,9 @@ public class ParamFlowRuleController {
         if (checkResult != null) {
             return checkResult;
         }
-        if (!checkIfSupported(entity.getApp(), entity.getIp(), entity.getPort())) {
-            return unsupportedVersion();
-        }
+//        if (!checkIfSupported(entity.getApp(), entity.getIp(), entity.getPort())) {
+//            return unsupportedVersion();
+//        }
         entity.setId(id);
         Date date = new Date();
         entity.setGmtCreate(oldEntity.getGmtCreate());
@@ -257,7 +263,13 @@ public class ParamFlowRuleController {
 
     private CompletableFuture<Void> publishRules(String app, String ip, Integer port) {
         List<ParamFlowRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
-        return sentinelApiClient.setParamFlowRuleOfMachine(app, ip, port, rules);
+//        return sentinelApiClient.setParamFlowRuleOfMachine(app, ip, port, rules);
+        try {
+            rulePublisher.publish(app, rules);
+        } catch (Exception e) {
+            logger.error("rule publisher exception", e);
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     private <R> Result<R> unsupportedVersion() {

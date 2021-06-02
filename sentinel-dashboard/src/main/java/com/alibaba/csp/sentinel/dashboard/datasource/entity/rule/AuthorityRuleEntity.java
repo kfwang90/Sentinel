@@ -15,48 +15,122 @@
  */
 package com.alibaba.csp.sentinel.dashboard.datasource.entity.rule;
 
+import com.alibaba.csp.sentinel.slots.block.Rule;
 import com.alibaba.csp.sentinel.slots.block.authority.AuthorityRule;
-import com.alibaba.csp.sentinel.util.AssertUtil;
-import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Date;
 
 /**
  * @author Eric Zhao
  * @since 0.2.1
  */
-public class AuthorityRuleEntity extends AbstractRuleEntity<AuthorityRule> {
+public class AuthorityRuleEntity implements RuleEntity {
 
-    public AuthorityRuleEntity() {
-    }
+    private Long id;
+    private String app;
+    private String ip;
+    private Integer port;
+    private String limitApp;
+    private String resource;
+    /**
+     * Mode: 0 for whitelist; 1 for blacklist.
+     */
+    private Integer strategy;
 
-    public AuthorityRuleEntity(AuthorityRule authorityRule) {
-        AssertUtil.notNull(authorityRule, "Authority rule should not be null");
-        this.rule = authorityRule;
-    }
+    private Date gmtCreate;
+    private Date gmtModified;
 
     public static AuthorityRuleEntity fromAuthorityRule(String app, String ip, Integer port, AuthorityRule rule) {
-        AuthorityRuleEntity entity = new AuthorityRuleEntity(rule);
+        AuthorityRuleEntity entity = new AuthorityRuleEntity();
         entity.setApp(app);
         entity.setIp(ip);
         entity.setPort(port);
+        entity.setLimitApp(rule.getLimitApp());
+        entity.setResource(rule.getResource());
+        entity.setStrategy(rule.getStrategy());
         return entity;
     }
 
-    @JsonIgnore
-    @JSONField(serialize = false)
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
+    }
+
+    @Override
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    @Override
+    public Integer getPort() {
+        return port;
+    }
+
+    @Override
+    public Date getGmtCreate() {
+        return gmtCreate;
+    }
+
+    public void setGmtCreate(Date gmtCreate) {
+        this.gmtCreate = gmtCreate;
+    }
+
+    public void setGmtModified(Date gmtModified) {
+        this.gmtModified = gmtModified;
+    }
+
+    @Override
+    public AuthorityRule toRule() {
+        AuthorityRule authorityRule = new AuthorityRule();
+        authorityRule.setResource(this.resource);
+        authorityRule.setLimitApp(this.limitApp);
+        authorityRule.setStrategy(this.strategy);
+        return authorityRule;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
+    }
+
     public String getLimitApp() {
-        return rule.getLimitApp();
+        return limitApp;
     }
 
-    @JsonIgnore
-    @JSONField(serialize = false)
+    public void setLimitApp(String limitApp) {
+        this.limitApp = limitApp;
+    }
+
     public String getResource() {
-        return rule.getResource();
+        return resource;
     }
 
-    @JsonIgnore
-    @JSONField(serialize = false)
-    public int getStrategy() {
-        return rule.getStrategy();
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
+
+    public Integer getStrategy() {
+        return strategy;
+    }
+
+    public void setStrategy(Integer strategy) {
+        this.strategy = strategy;
     }
 }

@@ -189,7 +189,7 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
 
       function saveAuthorityRule() {
           let ruleEntity = authorityRuleDialogScope.currentRule;
-          if (!AuthorityRuleService.checkRuleValid(ruleEntity.rule)) {
+          if (!AuthorityRuleService.checkRuleValid(ruleEntity)) {
               return;
           }
           AuthorityRuleService.addNewRule(ruleEntity).success((data) => {
@@ -211,7 +211,7 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
 
       function saveAuthorityRuleAndContinue() {
           let ruleEntity = authorityRuleDialogScope.currentRule;
-          if (!AuthorityRuleService.checkRuleValid(ruleEntity.rule)) {
+          if (!AuthorityRuleService.checkRuleValid(ruleEntity)) {
               return;
           }
           AuthorityRuleService.addNewRule(ruleEntity).success((data) => {
@@ -239,11 +239,9 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
               app: $scope.app,
               ip: mac[0],
               port: mac[1],
-              rule: {
-                  resource: resource,
-                  strategy: 0,
-                  limitApp: '',
-              }
+              resource: resource,
+              strategy: 0,
+              limitApp: ''
           };
 
           authorityRuleDialogScope.authorityRuleDialog = {
@@ -268,7 +266,7 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
 
       function saveParamFlowRule() {
           let ruleEntity = paramFlowRuleDialogScope.currentRule;
-          if (!ParamFlowService.checkRuleValid(ruleEntity.rule)) {
+          if (!ParamFlowService.checkRuleValid(ruleEntity)) {
               return;
           }
           ParamFlowService.addNewRule(ruleEntity).success((data) => {
@@ -290,7 +288,7 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
 
       function saveParamFlowRuleAndContinue() {
           let ruleEntity = paramFlowRuleDialogScope.currentRule;
-          if (!ParamFlowService.checkRuleValid(ruleEntity.rule)) {
+          if (!ParamFlowService.checkRuleValid(ruleEntity)) {
               return;
           }
           ParamFlowService.addNewRule(ruleEntity).success((data) => {
@@ -318,21 +316,19 @@ app.controller('IdentityCtl', ['$scope', '$stateParams', 'IdentityService',
               app: $scope.app,
               ip: mac[0],
               port: mac[1],
-              rule: {
-                  resource: resource,
-                  grade: 1,
-                  paramFlowItemList: [],
-                  count: 0,
-                  limitApp: 'default',
-                  controlBehavior: 0,
-                  durationInSec: 1,
-                  burstCount: 0,
-                  maxQueueingTimeMs: 0,
-                  clusterMode: false,
-                  clusterConfig: {
-                      thresholdType: 0,
-                      fallbackToLocalWhenFail: true,
-                  }
+              resource: resource,
+              grade: 1,
+              paramFlowItemList: [],
+              count: 0,
+              limitApp: 'default',
+              controlBehavior: 0,
+              durationInSec: 1,
+              burstCount: 0,
+              maxQueueingTimeMs: 0,
+              clusterMode: false,
+              clusterConfig: {
+                  thresholdType: 0,
+                  fallbackToLocalWhenFail: true,
               }
           };
 
