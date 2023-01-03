@@ -207,7 +207,8 @@ public class MetricFetcher {
                 unhealthy.incrementAndGet();
                 continue;
             }
-            final String url = "http://" + machine.getIp() + ":" + machine.getPort() + "/" + METRIC_URL_PATH
+            //禁用定时请求服务模块来获取实时TPS流量信息，影响服务性能；如需要展示实时监控请自行采集服务模块的sentinel日志文件进行持久化
+            /*final String url = "http://" + machine.getIp() + ":" + machine.getPort() + "/" + METRIC_URL_PATH
                 + "?startTime=" + startTime + "&endTime=" + endTime + "&refetch=" + false;
             final HttpGet httpGet = new HttpGet(url);
             httpGet.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
@@ -244,7 +245,7 @@ public class MetricFetcher {
                     fail.incrementAndGet();
                     httpGet.abort();
                 }
-            });
+            });*/
         }
         try {
             latch.await(maxWaitSeconds, TimeUnit.SECONDS);

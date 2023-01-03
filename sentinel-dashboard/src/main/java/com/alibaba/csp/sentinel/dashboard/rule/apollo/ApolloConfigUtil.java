@@ -22,6 +22,11 @@ package com.alibaba.csp.sentinel.dashboard.rule.apollo;
 public final class ApolloConfigUtil {
 
     /**
+     * 网关API管理规则
+     */
+    public static final String API_DATA_ID_POSTFIX = "-api-rules";
+
+    /**
      * 流控规则id
      */
     public static final String FLOW_DATA_ID_POSTFIX = "-flow-rules";
@@ -52,6 +57,10 @@ public final class ApolloConfigUtil {
     public static final String NAMESPACE_NAME = "application";
 
     private ApolloConfigUtil() {
+    }
+
+    public static String getApiDataId(String appName) {
+        return String.format("%s%s", appName, API_DATA_ID_POSTFIX);
     }
 
     public static String getFlowDataId(String appName) {
